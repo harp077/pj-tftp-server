@@ -891,7 +891,7 @@ public class TFTPServer implements Runnable {
         //new InputStreamReader(System.in).read();
         Scanner sc = new Scanner(System.in);
         while (true) {
-            if (sc.next().equals("stop")) {
+            if (sc.next().toLowerCase().trim().equals("stop")) {
                 ts.shutdown();
                 jul.log(Level.INFO, "Server shut down.");
                 System.exit(0);
