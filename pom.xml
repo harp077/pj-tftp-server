@@ -93,7 +93,7 @@
                         </manifest>
                         <manifestEntries>
                             <Version>${buildNumber}</Version>
-                            <SplashScreen-Image>img/pj-logo-128.png</SplashScreen-Image>
+                            <!--<SplashScreen-Image>img/pj-logo-128.png</SplashScreen-Image>-->
                         </manifestEntries>
                     </archive>
                 </configuration>
