@@ -9,7 +9,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketTimeoutException;
@@ -35,63 +34,45 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-/**
- * A fully multi-threaded tftp server. Can handle multiple clients at the same
- * time. Implements RFC 1350 and wrapping block numbers for large file support.
- *
- * To launch, just create an instance of the class. An IOException will be
- * thrown if the server fails to start for reasons such as port in use, port
- * denied, etc.
- *
- * To stop, use the shutdown method.
- *
- * To check to see if the server is still running (or if it stopped because of
- * an error), call the isRunning() method.
- *
- * By default, events are not logged to stdout/stderr. This can be changed with
- * the setLog and setLogError methods.
- *
- * <p>
- * Example usage is below:
- *
- * <code>
- * public static void main(String[] args) throws Exception
- *  {
- *      if (args.length != 1)
- *      {
- *          System.out
- *                  .println("You must provide 1 argument - the base path for the server to serve from.");
- *          System.exit(1);
- *      }
- *
- *      TFTPServer ts = new TFTPServer(new File(args[0]), new File(args[0]), GET_AND_PUT);
- *      ts.setSocketTimeout(2000);
- *
- *      System.out.println("TFTP Server running.  Press enter to stop.");
- *      new InputStreamReader(System.in).read();
- *
- *      ts.shutdown();
- *      System.out.println("Server shut down.");
- *      System.exit(0);
- *  }
- *
- * </code>
- *
- * @since 2.0
+ /* A fully multi-threaded tftp server. Can handle multiple clients at the same
+ time. Implements RFC 1350 and wrapping block numbers for large file support.
+    To launch, just create an instance of the class. An IOException will be
+ thrown if the server fails to start for reasons such as port in use, port
+ denied, etc.
+    To stop, use the shutdown method.
+    To check to see if the server is still running (or if it stopped because of
+an error), call the isRunning() method.
+    By default, events are not logged to stdout/stderr. This can be changed with
+the setLog and setLogError methods.
+    Example usage is below:
+public static void main(String[] args) throws Exception {
+       if (args.length != 1) {
+           System.out
+           .println("You must provide 1 argument - the base path for the server to serve from.");
+           System.exit(1);
+       }
+       TFTPServer ts = new TFTPServer(new File(args[0]), new File(args[0]), GET_AND_PUT);
+       ts.setSocketTimeout(2000);
+       System.out.println("TFTP Server running.  Press enter to stop.");
+       new InputStreamReader(System.in).read();
+       ts.shutdown();
+       System.out.println("Server shut down.");
+       System.exit(0);
  */
+
 public class TFTPServer implements Runnable {
 
     //public static java.util.logging.Logger jul;
     public static org.apache.log4j.Logger jul;
 
     static {
-        // for java.util.logging:
+            // for java.util.logging:
         /*try (FileInputStream ins = new FileInputStream("log/jul.properties")) {
             LogManager.getLogManager().readConfiguration(ins);
             jul = java.util.logging.Logger.getLogger(TFTPServer.class.getName());
         } catch (Exception ignore) { ignore.printStackTrace(); }*/
 
-        // for log4j:
+            // for log4j:
         //File propertiesFile = new File("cfg/log4j.properties");
         //PropertyConfigurator.configure(propertiesFile.toString());
         PropertyConfigurator.configure("log/log4j.properties");
@@ -115,67 +96,41 @@ public class TFTPServer implements Runnable {
     private final InetAddress laddr_;
     private Exception serverException = null;
     private final ServerMode mode_;
-
-    /* /dev/null output stream (default) */
-    /*private static final PrintStream nullStream = new PrintStream(
-            new OutputStream() {
-        @Override
-        public void write(final int b) {
-        }
-
-        @Override
-        public void write(final byte[] b) throws IOException {
-        }
-    }
-    );*/
-
-    // don't have access to a logger api, so we will log to these streams, which
-    // by default are set to a no-op logger
-    //private Logger log_;
-    //private Logger logError_;
-
     private int maxTimeoutRetries_ = 3;
     private int socketTimeout_;
     private Thread serverThread;
 
-    /**
-     * Start a TFTP Server on the default port (69). Gets and Puts occur in the
+     /* Start a TFTP Server on the default port (69). Gets and Puts occur in the
      * specified directories.
-     *
      * The server will start in another thread, allowing this constructor to
      * return immediately.
-     *
      * If a get or a put comes in with a relative path that tries to get outside
      * of the serverDirectory, then the get or put will be denied.
-     *
      * GET_ONLY mode only allows gets, PUT_ONLY mode only allows puts, and
      * GET_AND_PUT allows both. Modes are defined as int constants in this
      * class.
-     *
      * @param serverReadDirectory directory for GET requests
      * @param serverWriteDirectory directory for PUT requests
      * @param mode A value as specified above.
      * @throws IOException if the server directory is invalid or does not exist.
      */
+    
     public TFTPServer(final File serverReadDirectory, final File serverWriteDirectory, final ServerMode mode)
             throws IOException {
-        this(serverReadDirectory, serverWriteDirectory, DEFAULT_TFTP_PORT, mode, null, null);
+        //this(serverReadDirectory, serverWriteDirectory, DEFAULT_TFTP_PORT, mode, null, null);
+        this(serverReadDirectory, serverWriteDirectory, DEFAULT_TFTP_PORT, mode, jul, jul);
     }
 
-    /**
-     * Start a TFTP Server on the specified port. Gets and Puts occur in the
+    
+    /* Start a TFTP Server on the specified port. Gets and Puts occur in the
      * specified directory.
-     *
      * The server will start in another thread, allowing this constructor to
      * return immediately.
-     *
      * If a get or a put comes in with a relative path that tries to get outside
      * of the serverDirectory, then the get or put will be denied.
-     *
      * GET_ONLY mode only allows gets, PUT_ONLY mode only allows puts, and
      * GET_AND_PUT allows both. Modes are defined as int constants in this
      * class.
-     *
      * @param serverReadDirectory directory for GET requests
      * @param serverWriteDirectory directory for PUT requests
      * @param port the port to use
@@ -186,6 +141,7 @@ public class TFTPServer implements Runnable {
      * System.err.
      * @throws IOException if the server directory is invalid or does not exist.
      */
+    
     public TFTPServer(final File serverReadDirectory, final File serverWriteDirectory, final int port, final ServerMode mode,
             final Logger log, final Logger errorLog) throws IOException {
         port_ = port;
@@ -196,20 +152,15 @@ public class TFTPServer implements Runnable {
         launch(serverReadDirectory, serverWriteDirectory);
     }
 
-    /**
-     * Start a TFTP Server on the specified port. Gets and Puts occur in the
+     /* Start a TFTP Server on the specified port. Gets and Puts occur in the
      * specified directory.
-     *
      * The server will start in another thread, allowing this constructor to
      * return immediately.
-     *
      * If a get or a put comes in with a relative path that tries to get outside
      * of the serverDirectory, then the get or put will be denied.
-     *
      * GET_ONLY mode only allows gets, PUT_ONLY mode only allows puts, and
      * GET_AND_PUT allows both. Modes are defined as int constants in this
      * class.
-     *
      * @param serverReadDirectory directory for GET requests
      * @param serverWriteDirectory directory for PUT requests
      * @param port The local port to bind to.
@@ -221,6 +172,7 @@ public class TFTPServer implements Runnable {
      * System.err.
      * @throws IOException if the server directory is invalid or does not exist.
      */
+    
     public TFTPServer(final File serverReadDirectory, final File serverWriteDirectory, final int port,
             final InetAddress localaddr, final ServerMode mode, final Logger log, final Logger errorLog)
             throws IOException {
@@ -278,11 +230,8 @@ public class TFTPServer implements Runnable {
         launch(serverReadDirectory, serverWriteDirectory);
     }
 
-    /**
-     * Set the max number of retries in response to a timeout. Default 3. Min 0.
-     *
-     * @param retries number of retries, must be &gt; 0
-     */
+    /* Set the max number of retries in response to a timeout. Default 3. Min 0.
+       @param retries number of retries, must be &gt; 0  */
     public void setMaxTimeoutRetries(final int retries) {
         if (retries < 0) {
             throw new RuntimeException("Invalid Value");
@@ -290,21 +239,16 @@ public class TFTPServer implements Runnable {
         maxTimeoutRetries_ = retries;
     }
 
-    /**
-     * Get the current value for maxTimeoutRetries
-     *
-     * @return the max allowed number of retries
-     */
+    /* Get the current value for maxTimeoutRetries
+      @return the max allowed number of retries */
     public int getMaxTimeoutRetries() {
         return maxTimeoutRetries_;
     }
 
-    /**
-     * Set the socket timeout in milliseconds used in transfers. Defaults to the
+    /* Set the socket timeout in milliseconds used in transfers. Defaults to the
      * value here:
      * https://commons.apache.org/net/apidocs/org/apache/commons/net/tftp/TFTP.html#DEFAULT_TIMEOUT
      * (5000 at the time I write this) Min value of 10.
-     *
      * @param timeout the timeout; must be larger than 10
      */
     public void setSocketTimeout(final int timeout) {
@@ -314,18 +258,14 @@ public class TFTPServer implements Runnable {
         socketTimeout_ = timeout;
     }
 
-    /**
-     * The current socket timeout used during transfers in milliseconds.
-     *
+    /* The current socket timeout used during transfers in milliseconds.
      * @return the timeout value
      */
     public int getSocketTimeout() {
         return socketTimeout_;
     }
 
-    /*
-     * start the server, throw an error if it can't start.
-     */
+    // start the server, throw an error if it can't start.
     private void launch(final File serverReadDirectory, final File serverWriteDirectory) throws IOException {
         jul.log(Level.INFO, "Starting TFTP Server on port " + port_ + ".  Read directory: "
                 + serverReadDirectory + " Write directory: " + serverWriteDirectory
@@ -367,13 +307,10 @@ public class TFTPServer implements Runnable {
         shutdown();
     }
 
-    /**
-     * check if the server thread is still running.
-     *
+    /* check if the server thread is still running.
      * @return true if running, false if stopped.
      * @throws Exception throws the exception that stopped the server if the
-     * server is stopped from an exception.
-     */
+     * server is stopped from an exception. */
     public boolean isRunning() throws Exception {
         if (shutdownServer && serverException != null) {
             throw serverException;
@@ -411,10 +348,8 @@ public class TFTPServer implements Runnable {
         }
     }
 
-    /**
-     * Stop the tftp server (and any currently running transfers) and release
-     * all opened network resources.
-     */
+    /* Stop the tftp server (and any currently running transfers) and release
+     * all opened network resources.      */
     public void shutdown() {
         shutdownServer = true;
 
@@ -438,9 +373,7 @@ public class TFTPServer implements Runnable {
         }
     }
 
-    /*
-     * An instance of an ongoing transfer.
-     */
+    // An instance of an ongoing transfer.
     private class TFTPTransfer implements Runnable {
 
         private final TFTPPacket tftpPacket_;
@@ -498,9 +431,7 @@ public class TFTPServer implements Runnable {
             }
         }
 
-        /*
-         * Handle a tftp read request.
-         */
+        // Handle a tftp read request.
         private void handleRead(final TFTPReadRequestPacket trrp) throws IOException, TFTPPacketException {
             InputStream is = null;
             try {
@@ -625,9 +556,7 @@ public class TFTPServer implements Runnable {
             }
         }
 
-        /*
-         * handle a tftp write request.
-         */
+        // * handle a tftp write request.
         private void handleWrite(final TFTPWriteRequestPacket twrp) throws IOException,
                 TFTPPacketException {
             OutputStream bos = null;
@@ -766,10 +695,8 @@ public class TFTPServer implements Runnable {
             }
         }
 
-        /*
-         * Utility method to make sure that paths provided by tftp clients do not get outside of the
-         * serverRoot directory.
-         */
+        /* Utility method to make sure that paths provided by tftp clients do not get outside of the
+         * serverRoot directory.         */
         private File buildSafeFile(final File serverDirectory, final String fileName, final boolean createSubDirs)
                 throws IOException {
             File temp = new File(serverDirectory, fileName);
@@ -787,9 +714,7 @@ public class TFTPServer implements Runnable {
             return temp;
         }
 
-        /*
-         * recursively create subdirectories
-         */
+        // * recursively create subdirectories
         private void createDirectory(final File file) throws IOException {
             final File parent = file.getParentFile();
             if (parent == null) {
@@ -814,9 +739,7 @@ public class TFTPServer implements Runnable {
             }
         }
 
-        /*
-         * recursively check to see if one directory is a parent of another.
-         */
+        // * recursively check to see if one directory is a parent of another.
         private boolean isSubdirectoryOf(final File parent, final File child) {
             final File childsParent = child.getParentFile();
             if (childsParent == null) {
@@ -829,28 +752,7 @@ public class TFTPServer implements Runnable {
         }
     }
 
-    /**
-     * Set the stream object to log debug / informational messages. By default,
-     * this is a no-op
-     *
-     * @param log the stream to use for logging
-     */
-    /*public void setLog(final Logger log) {
-        this.log_ = log;
-    }*/
-
-    /**
-     * Set the stream object to log error messsages. By default, this is a no-op
-     *
-     * @param logError the stream to use for logging errors
-     */
-    /*public void setLogError(final Logger logError) {
-        this.logError_ = logError;
-    }*/
-
-    /*
-     * Allow test code to customise the TFTP instance
-     */
+    // * Allow test code to customise the TFTP instance
     TFTP newTFTP() {
         return new TFTP();
     }
@@ -871,7 +773,7 @@ public class TFTPServer implements Runnable {
         TFTPServer ts = new TFTPServer(new File(args[0]), new File(args[0]), ServerMode.GET_AND_PUT);
         ts.setSocketTimeout(2000);
 
-        jul.log(Level.INFO, "TFTP Server running.  Enter stop to stop.");
+        jul.log(Level.INFO, "TFTP Server v1.0.1 running.  Enter 'stop' to server stop.");
         //new InputStreamReader(System.in).read();
         Scanner sc = new Scanner(System.in);
         while (true) {
