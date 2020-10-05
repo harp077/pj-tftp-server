@@ -1,19 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package my.harp07.tftp;
 
 import java.io.BufferedInputStream;
@@ -133,7 +117,7 @@ public class TFTPServer implements Runnable {
     private final ServerMode mode_;
 
     /* /dev/null output stream (default) */
-    private static final PrintStream nullStream = new PrintStream(
+    /*private static final PrintStream nullStream = new PrintStream(
             new OutputStream() {
         @Override
         public void write(final int b) {
@@ -143,12 +127,12 @@ public class TFTPServer implements Runnable {
         public void write(final byte[] b) throws IOException {
         }
     }
-    );
+    );*/
 
     // don't have access to a logger api, so we will log to these streams, which
     // by default are set to a no-op logger
-    private Logger log_;
-    private Logger logError_;
+    //private Logger log_;
+    //private Logger logError_;
 
     private int maxTimeoutRetries_ = 3;
     private int socketTimeout_;
@@ -851,18 +835,18 @@ public class TFTPServer implements Runnable {
      *
      * @param log the stream to use for logging
      */
-    public void setLog(final Logger log) {
+    /*public void setLog(final Logger log) {
         this.log_ = log;
-    }
+    }*/
 
     /**
      * Set the stream object to log error messsages. By default, this is a no-op
      *
      * @param logError the stream to use for logging errors
      */
-    public void setLogError(final Logger logError) {
+    /*public void setLogError(final Logger logError) {
         this.logError_ = logError;
-    }
+    }*/
 
     /*
      * Allow test code to customise the TFTP instance
