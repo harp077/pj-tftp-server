@@ -773,16 +773,18 @@ public class TFTPServer implements Runnable {
         TFTPServer ts = new TFTPServer(new File(args[0]), new File(args[0]), ServerMode.GET_AND_PUT);
         ts.setSocketTimeout(2000);
 
-        jul.log(Level.INFO, "TFTP Server v1.0.1 running.  Enter 'stop' to server stop.");
+        jul.log(Level.INFO, "Fully multi-threaded TFTP Server v1.0.2 running.  Enter 'stop' to server stop.");
         //new InputStreamReader(System.in).read();
         Scanner sc = new Scanner(System.in);
-        while (true) {
-            if (sc.next().toLowerCase().trim().equals("stop")) {
-                ts.shutdown();
-                jul.log(Level.INFO, "Server shut down.");
-                System.exit(0);
+        new Thread(() -> {
+            while (true) {
+                    if (sc.next().toLowerCase().trim().equals("stop")) {
+                    ts.shutdown();
+                    jul.log(Level.INFO, "Server shut down.");
+                    System.exit(0);
+                }
             }
-        }
+        }).start();
     }
 
 }
